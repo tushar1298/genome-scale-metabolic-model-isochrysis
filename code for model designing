@@ -1,0 +1,46 @@
+%pathway data was collected from literature sources and online databases after a thorough study and understanding.
+%After the collection and assembling of all the data from pathways and reactions along with their genes and compartments, the reactions and genes and reactions were added. 
+%All Reactions were added as in the COBRA readable format using reaction identifiers
+r_0001='lactate[c] + 2ferricytochrome-c[m] -> 2ferrocytochrome-c[m] + pyruvate[c]' 
+%It is to be noted that the identifier name may be unique as per the study
+%Genes were added as in the COBRA readable format using unique gene names
+grule1='YJR048W OR YDL174C OR YEL039C OR YEL071W'
+%A similar practice was done for all the genes and reactions.
+%the pathways producing the chemical compound of interest are also listed as separate reactions and the reaction producing the chemical compound needs to be labeled separately for easy analysis.
+%genes responsible for the reactions may also be added as genes corresponding to the respective genes.
+%Duplicates were removed in the Excel environment and a draft table was created.
+%create the biomass reaction using the experimental data and available infromation.
+%Also add the biomass reaction in the model as ‘biom_tot’ and other essential reactions for the product formation derived from the compositions obtained from the experimental data.
+%The formulas and data were then combined in the MATLAB
+%In the MATLAB environment,
+%Open MATLAB and initialize the COBRA Toolbox using the command.
+initCobraToolbox(false);
+%The following cell arrays were then created using all the reaction identifiers and gene names
+ReactionIdentifier= {‘r_0001’,’r_0002’……’r_4707’}
+ReactionNames= {‘r_0001’,’r_0002’……’r_4707’}
+ReactionFormulas= {‘r_0001’,’r_0002’……’r_4707’}
+gRuleList={grule1,grule2………grule2541’}
+%Now the model is created using the formula
+model=createModel(ReactionIdentifier,ReactionNames,ReactionFormulas,'grRuleList',gRuleList);
+%Now the model is created in the MATLAB environment.
+%Now since the model is created, we need to fill the exchange reaction for the model for applying the constraints in the model.
+%We used the following commands for adding the reactions;
+%For adding exchange reactions in the model;
+model1 = addExchangeRxn(model,model.mets)
+%A new model named ‘model1’ is created which contains reactions including the base reactions, exchange reactions.
+%The model1 was then checked for duplicates and duplicates were then removed,
+modeliso=checkDuplicateRxn(model1)
+%New model is created naming ‘iso_metabolic_1.0’ that has all  the duplicates removed from the initial model.
+%Check blocked reactions (if any)
+BlockedReaction=findBlockedReaction(iso_metabolic_1.0)
+%Change bounds of the ATPM reaction to allow cell growth
+modeliso = changeRxnBounds(modeliso, 'ATP', 8.6, 'u')
+%Change Objective reaction for the model, objective reaction is set up to increase the production of that specific reaction in the model.
+modeliso=changeObjective(modeliso,'biom_tot')
+%Optimize the model for obtaining the flux value
+optimizeCbModel(modeliso)
+% the following process can be done for all the desired metabolites producing reactions by setting them as the objective reaction and varying constraints of the related reactions of the producing pathways.
+%Convert model to SBML format for easy exportation
+modeliso=writeCbModel(modeliso,'iIsochr964.xml')
+%this code creates a sbml format model file with the name 'iIsochr964.xml'
+%further analysis is done in the optflux software by applying environmental constraints and varying fluxes to peroform Flux balance analysis.
